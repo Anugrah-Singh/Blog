@@ -7,85 +7,40 @@ import { useSelector } from "react-redux";
 
 export default function Post() {
     const [post, setPost] = useState(null);
-    const [imageUrl, setImageUrl] = useState(null);
     const { slug } = useParams();
     const navigate = useNavigate();
 
     const userData = useSelector((state) => state.auth.userData);
+
     const isAuthor = post && userData ? post.userId === userData.$id : false;
 
     useEffect(() => {
-        let isMounted = true;
-
-        const loadPost = async () => {
-            try {
-                if (!slug) {
-                    navigate("/");
-                    return;
-                }
-
-                const postData = await service.getPost(slug);
-                if (!postData || !isMounted) {
-                    navigate("/");
-                    return;
-                }
-
-                setPost(postData);
-
-                if (postData.featuredImage) {
-                    try {
-                        const preview = await service.getFilePreview(postData.featuredImage);
-                        if (isMounted && preview) {
-                            const timestamp = new Date().getTime();
-                            setImageUrl(`${preview}?t=${timestamp}`);
-                        }
-                    } catch (error) {
-                        console.error("Failed to load image:", error);
-                    }
-                }
-            } catch (error) {
-                console.error("Failed to load post:", error);
-                if (isMounted) navigate("/");
-            }
-        };
-
-        loadPost();
-
-        return () => {
-            isMounted = false;
-        };
+        if (slug) {
+            service.getPost(slug).then((post) => {
+                if (post) setPost(post);
+                else navigate("/");
+            });
+        } else navigate("/");
     }, [slug, navigate]);
 
-    const deletePost = async () => {
-        try {
-            if (window.confirm("Are you sure you want to delete this post?")) {
-                const status = await service.deletePost(post.$id);
-                if (status) {
-                    if (post.featuredImage) {
-                        await service.deleteFile(post.featuredImage);
-                    }
-                    navigate("/");
-                } else {
-                    throw new Error("Failed to delete post");
-                }
+    const deletePost = () => {
+        service.deletePost(post.$id).then((status) => {
+            if (status) {
+                service.deleteFile(post.featuredImage);
+                navigate("/");
             }
-        } catch (error) {
-            console.error("Error deleting post:", error);
-            // Optionally add user notification here
-        }
+        });
     };
 
     return post ? (
         <div className="py-8">
             <Container>
                 <div className="w-full flex justify-center mb-4 relative border rounded-xl p-2">
-                    {imageUrl && (
-                        <img
-                            src={imageUrl}
-                            alt={post.title}
-                            className="rounded-xl"
-                        />
-                    )}
+                    <img
+                        src={service.getFilePreview(post.featuredImage)}
+                        alt={post.title}
+                        className="rounded-xl"
+                    />
 
                     {isAuthor && (
                         <div className="absolute right-6 top-6">
