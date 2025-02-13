@@ -23,6 +23,17 @@ export default function Post() {
         } else navigate("/");
     }, [slug, navigate]);
 
+    useEffect(() => {
+        if (post && post.featuredImage) {
+            service.getFilePreview(post.featuredImage).then((url) => {
+                setPost((prevPost) => ({
+                    ...prevPost,
+                    featuredImage: url,
+                }));
+            });
+        }
+    }, [post]);
+
     const deletePost = () => {
         service.deletePost(post.$id).then((status) => {
             if (status) {
@@ -37,7 +48,7 @@ export default function Post() {
             <Container>
                 <div className="w-full flex justify-center mb-4 relative border rounded-xl p-2">
                     <img
-                        src={service.getFilePreview(post.featuredImage)}
+                        src={post.featuredImage}
                         alt={post.title}
                         className="rounded-xl"
                     />
