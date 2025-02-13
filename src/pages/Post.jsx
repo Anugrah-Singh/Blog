@@ -16,24 +16,18 @@ export default function Post() {
 
     useEffect(() => {
         if (slug) {
-            service.getPost(slug).then((post) => {
-                if (post) setPost(post);
-                else navigate("/");
+            service.getPost(slug).then(async (post) => {
+                if (post) {
+                    if (post.featuredImage) {
+                        const timestamp = new Date().getTime();
+                        const url = await service.getFilePreview(post.featuredImage);
+                        post.featuredImage = `${url}?t=${timestamp}`;
+                    }
+                    setPost(post);
+                } else navigate("/");
             });
         } else navigate("/");
     }, [slug, navigate]);
-
-    useEffect(() => {
-        if (post && post.featuredImage) {
-            const timestamp = new Date().getTime();
-            service.getFilePreview(post.featuredImage).then((url) => {
-                setPost((prevPost) => ({
-                    ...prevPost,
-                    featuredImage: `${url}?t=${timestamp}`,
-                }));
-            });
-        }
-    }, [post]);
 
     const deletePost = () => {
         service.deletePost(post.$id).then((status) => {
