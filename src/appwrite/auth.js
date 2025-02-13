@@ -2,17 +2,24 @@
 import conf from '../conf/conf.js';
 import { Client, Account, ID } from "appwrite";
 
-
 export class AuthService {
     client = new Client();
     account;
 
     constructor() {
-        this.client
-            .setEndpoint(conf.appwriteUrl)
-            .setProject(conf.appwriteProjectId);
-        this.account = new Account(this.client);
-            
+        if (!conf.appwriteUrl || !conf.appwriteProjectId) {
+            console.error("Appwrite configuration is invalid. Please check appwriteUrl and appwriteProjectId.");
+            return;
+        }
+
+        try {
+            this.client
+                .setEndpoint(conf.appwriteUrl)
+                .setProject(conf.appwriteProjectId);
+            this.account = new Account(this.client);
+        } catch (error) {
+            console.error("Failed to initialize Appwrite client:", error);
+        }
     }
 
     async createAccount({email, password, name}) {
@@ -54,5 +61,5 @@ export class AuthService {
 
 const authService = new AuthService();
 
-export default authService
+export default authService;
 
