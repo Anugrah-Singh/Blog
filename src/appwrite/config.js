@@ -19,14 +19,14 @@ export class Service{
             return await this.databases.createDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionId,
-                ID.unique(), // Use ID.unique() to generate a unique ID
+                slug,
                 {
                     title,
                     content,
                     featuredImage,
                     status,
                     userId,
-                    slug // Store slug as a field instead of using it as the document ID
+                    slug
                 }
             )
         } catch (error) {
