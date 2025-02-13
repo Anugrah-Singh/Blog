@@ -15,19 +15,45 @@ export default function Post() {
     const isAuthor = post && userData ? post.userId === userData.$id : false;
 
     useEffect(() => {
-        if (slug) {
-            service.getPost(slug).then((post) => {
-                if (post) {
-                    setPost(post);
-                    // Handle featured image separately
-                    if (post.featuredImage) {
-                        const timestamp = new Date().getTime();
-                        service.getFilePreview(post.featuredImage)
-                            .then(url => setImageUrl(`${url}?t=${timestamp}`));
+        let isMounted = true;
+
+        const loadPost = async () => {
+            try {
+                if (!slug) {
+                    navigate("/");
+                    return;
+                }
+
+                const postData = await service.getPost(slug);
+                if (!postData || !isMounted) {
+                    navigate("/");
+                    return;
+                }
+
+                setPost(postData);
+
+                if (postData.featuredImage) {
+                    try {
+                        const preview = await service.getFilePreview(postData.featuredImage);
+                        if (isMounted && preview) {
+                            const timestamp = new Date().getTime();
+                            setImageUrl(`${preview}?t=${timestamp}`);
+                        }
+                    } catch (error) {
+                        console.error("Failed to load image:", error);
                     }
-                } else navigate("/");
-            });
-        } else navigate("/");
+                }
+            } catch (error) {
+                console.error("Failed to load post:", error);
+                if (isMounted) navigate("/");
+            }
+        };
+
+        loadPost();
+
+        return () => {
+            isMounted = false;
+        };
     }, [slug, navigate]);
 
     const deletePost = async () => {
