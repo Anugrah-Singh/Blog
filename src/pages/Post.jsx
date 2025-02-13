@@ -25,10 +25,11 @@ export default function Post() {
 
     useEffect(() => {
         if (post && post.featuredImage) {
+            const timestamp = new Date().getTime();
             service.getFilePreview(post.featuredImage).then((url) => {
                 setPost((prevPost) => ({
                     ...prevPost,
-                    featuredImage: url,
+                    featuredImage: `${url}?t=${timestamp}`,
                 }));
             });
         }
