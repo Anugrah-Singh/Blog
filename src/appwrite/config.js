@@ -126,10 +126,7 @@ export class Service{
 
     async getFilePreview(fileId) {
         try {
-            return this.bucket.getFilePreview(
-                conf.appwriteBucketId,
-                fileId
-            );
+            return this.bucket.getFilePreview(conf.appwriteBucketId, fileId);
         } catch (error) {
             console.log("Appwrite service :: getFilePreview :: error", error);
             return null;
