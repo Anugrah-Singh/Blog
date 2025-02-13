@@ -16,9 +16,6 @@ export class Service{
 
     async createPost({title, slug, content, featuredImage, status, userId}){
         try {
-            const fileResponse = await this.uploadFile(featuredImage);
-            const fileId = fileResponse.$id;
-
             return await this.databases.createDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionId,
@@ -26,25 +23,19 @@ export class Service{
                 {
                     title,
                     content,
-                    featuredImage: fileId,
+                    featuredImage,
                     status,
                     userId,
                     slug
                 }
             )
         } catch (error) {
-            console.log("Appwrite service :: createPost :: error", error);
+            console.log("Appwrite serive :: createPost :: error", error);
         }
     }
 
     async updatePost(slug, {title, content, featuredImage, status}){
         try {
-            let fileId = featuredImage;
-            if (featuredImage instanceof File) {
-                const fileResponse = await this.uploadFile(featuredImage);
-                fileId = fileResponse.$id;
-            }
-
             return await this.databases.updateDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionId,
@@ -52,13 +43,13 @@ export class Service{
                 {
                     title,
                     content,
-                    featuredImage: fileId,
+                    featuredImage,
                     status,
 
                 }
             )
         } catch (error) {
-            console.log("Appwrite service :: updatePost :: error", error);
+            console.log("Appwrite serive :: updatePost :: error", error);
         }
     }
 
@@ -79,44 +70,30 @@ export class Service{
 
     async getPost(slug){
         try {
-            const post = await this.databases.getDocument(
+            return await this.databases.getDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionId,
                 slug
             
-            );
-
-            if (post.featuredImage) {
-                const imageResponse = await this.getFilePreview(post.featuredImage);
-                post.featuredImageUrl = imageResponse.href;
-            }
-
-            return post;
+            )
         } catch (error) {
-            console.log("Appwrite service :: getPost :: error", error);
-            return false;
+            console.log("Appwrite serive :: getPost :: error", error);
+            return false
         }
     }
 
     async getPosts(queries = [Query.equal("status", "active")]){
         try {
-            const posts = await this.databases.listDocuments(
+            return await this.databases.listDocuments(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionId,
-                queries
-            );
+                queries,
+                
 
-            for (const post of posts.documents) {
-                if (post.featuredImage) {
-                    const imageResponse = await this.getFilePreview(post.featuredImage);
-                    post.featuredImageUrl = imageResponse.href;
-                }
-            }
-
-            return posts;
+            )
         } catch (error) {
-            console.log("Appwrite service :: getPosts :: error", error);
-            return false;
+            console.log("Appwrite serive :: getPosts :: error", error);
+            return false
         }
     }
 
